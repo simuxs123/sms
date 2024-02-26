@@ -8,13 +8,15 @@
     "lint": "eslint .",
     "start": "react-native start",
     "test": "jest",
-    "android-debug":"cd android && gradlew assembleDebug",
-    "android-bundle": "react-native bundle --platform android --dev false --entry-file index.js --bundle-output android/app/src/main/assets/index.android.bundle --assets-dest android/app/src/main/res"
+    "android-debug": "cd android && gradlew assembleDebug",
+    "android-bundle": "react-native bundle --platform android --dev false --entry-file index.tsx --bundle-output android/app/src/main/assets/index.android.bundle --assets-dest android/app/src/main/res"
   },
   "dependencies": {
+    "@types/react-native-background-timer": "^2.0.2",
     "react": "18.2.0",
     "react-native": "0.73.4",
     "react-native-android-notification-listener": "^5.0.1",
+    "react-native-background-timer": "^2.4.1",
     "react-native-mmkv": "^2.12.1",
     "react-native-send-direct-sms": "^0.2.0"
   },

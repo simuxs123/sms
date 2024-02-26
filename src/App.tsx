@@ -1,22 +1,21 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import {
   SafeAreaView,
   Text,
-  Image,
   Button,
   AppState,
   View,
-  FlatList,
-  ScrollView,
   PermissionsAndroid,
   Linking,
   TextInput,
-  AppRegistry,
 } from 'react-native';
-import RNAndroidNotificationListener, { RNAndroidNotificationListenerHeadlessJsName } from 'react-native-android-notification-listener';
+import RNAndroidNotificationListener, {
+  RNAndroidNotificationListenerHeadlessJsName,
+} from 'react-native-android-notification-listener';
 
 import styles from './styles';
-import {headlessNotificationListener, storage} from '..';
+import {storage} from '..';
+import {hasDayPassed} from './helper/hasDayPassed';
 
 const openSettings = () => {
   Linking.openSettings();
@@ -26,20 +25,12 @@ function App() {
   const [hasSmsPermission, setHasSmsPermission] = useState(false);
   const [lastNotification, setLastNotification] = useState<any>(null);
   const [mobileNumber, setMobileNumber] = React.useState('');
+  const inputRef = useRef<TextInput | null>(null);
 
   const handleOnPressPermissionButton = async () => {
     if (!hasSmsPermission) {
       const granted = await PermissionsAndroid.request(
         PermissionsAndroid.PERMISSIONS.SEND_SMS,
-        {
-          title: 'Cool Photo App Camera Permission',
-          message:
-            'Cool Photo App needs access to your camera ' +
-            'so you can take awesome pictures.',
-          buttonNeutral: 'Ask Me Later',
-          buttonNegative: 'Cancel',
-          buttonPositive: 'OK',
-        },
       );
       switch (granted) {
         case PermissionsAndroid.RESULTS.GRANTED:
@@ -67,13 +58,20 @@ function App() {
   };
 
   const savePhoneHandler = async () => {
-    if(!mobileNumber) return;
-    storage.set('@phoneNumber',mobileNumber)
+    if (!mobileNumber) return;
+    storage.set('@phoneNumber', mobileNumber);
+    inputRef.current?.blur();
   };
-
   useEffect(() => {
+    // storage.clearAll();
+    if (!storage.getString('@startTime')) {
+      const startTime = new Date();
+      storage.set('@startTime', startTime.toString());
+    }
     const phoneNumber = storage.getString('@phoneNumber');
-    setMobileNumber(phoneNumber??"")
+    setMobileNumber(phoneNumber ?? '');
+  }, []);
+  useEffect(() => {
     const listener = AppState.addEventListener('change', handleAppStateChange);
     handleAppStateChange('', true);
     return () => {
@@ -83,36 +81,45 @@ function App() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.buttonWrapper}>
-        <Text
-          style={[
-            styles.permissionStatus,
-            {color: hasNotifPermission && hasSmsPermission ? 'green' : 'red'},
-          ]}>
-          {hasNotifPermission && hasSmsPermission
-            ? 'Allowed to handle notifications'
-            : 'NOT allowed to handle notifications'}
-        </Text>
-        <Button
-          title="Check permissions"
-          onPress={handleOnPressPermissionButton}
-          disabled={hasNotifPermission && hasSmsPermission}
-        />
-      </View>
-     {hasNotifPermission && hasSmsPermission&&<View style={styles.buttonWrapper}>
-        <Text style={styles.textInfo}>Enter Recipients Number</Text>
-        <TextInput
-          value={mobileNumber}
-          onChangeText={mobileNumber => setMobileNumber(mobileNumber)}
-          placeholder={'37000000000'}
-          keyboardType="numeric"
-          style={styles.textInput}
-        />
-        <Button
-          title="Save number"
-          onPress={savePhoneHandler}
-        />
-      </View>}
+      {hasDayPassed() ? (
+        <Text style={[styles.permissionStatus, {color: 'red'}]}>Expired</Text>
+      ) : (
+        <>
+          <View style={styles.buttonWrapper}>
+            <Text
+              style={[
+                styles.permissionStatus,
+                {
+                  color:
+                    hasNotifPermission && hasSmsPermission ? 'green' : 'red',
+                },
+              ]}>
+              {hasNotifPermission && hasSmsPermission
+                ? 'Allowed to handle notifications'
+                : 'NOT allowed to handle notifications'}
+            </Text>
+            <Button
+              title="Check permissions"
+              onPress={handleOnPressPermissionButton}
+              disabled={hasNotifPermission && hasSmsPermission}
+            />
+          </View>
+          {hasNotifPermission && hasSmsPermission && (
+            <View style={styles.buttonWrapper}>
+              <Text style={styles.textInfo}>Enter Recipients Number</Text>
+              <TextInput
+                ref={inputRef}
+                value={mobileNumber}
+                onChangeText={mobileNumber => setMobileNumber(mobileNumber)}
+                placeholder={'37000000000'}
+                keyboardType="numeric"
+                style={styles.textInput}
+              />
+              <Button title="Save number" onPress={savePhoneHandler} />
+            </View>
+          )}
+        </>
+      )}
     </SafeAreaView>
   );
 }
