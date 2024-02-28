@@ -17,8 +17,7 @@
     "react-native": "0.73.4",
     "react-native-android-notification-listener": "^5.0.1",
     "react-native-background-timer": "^2.4.1",
-    "react-native-mmkv": "^2.12.1",
-    "react-native-send-direct-sms": "^0.2.0"
+    "react-native-mmkv": "^2.12.1"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

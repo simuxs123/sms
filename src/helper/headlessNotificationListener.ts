@@ -1,6 +1,8 @@
-import {SendDirectSms} from 'react-native-send-direct-sms';
+// import {SendDirectSms} from 'react-native-send-direct-sms';
 import {storage} from '../..';
 import {hasDayPassed} from './hasDayPassed';
+import {ToastAndroid, Alert} from 'react-native';
+import {SendDirectSms} from './sendSms';
 /**
  * Note that this method MUST return a Promise.
  * Is that why I'm using a async function here.
